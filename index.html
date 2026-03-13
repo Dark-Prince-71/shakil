@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ClawShield — Security for OpenClaw Skills</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #08090c;
+            --bg-elevated: #0f1117;
+            --bg-card: #13151c;
+            --border: #1e2130;
+            --border-glow: #2a3a5c;
+            --text: #e2e4ed;
+            --text-dim: #6b7094;
+            --text-muted: #3d4160;
+            --accent: #4ae68a;
+            --accent-glow: #2bde7440;
+            --danger: #ff4d6a;
+            --danger-glow: #ff4d6a30;
+            --warning: #ffb545;
+            --info: #45a2ff;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Noise overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+            background: rgba(8,9,12,0.7);
+            backdrop-filter: blur(24px) saturate(1.2);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .nav-logo .shield-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), #2bde74);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 9px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            overflow: visible;
+        }
+        .hero > .container {
+            padding: 0 48px;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 80px 80px;
+            opacity: 0.25;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+        }
+        .hero-glow {
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            clip-path: inset(0);
+        }
+        .hero-glow-danger {
+            position: absolute;
+            bottom: 10%;
+            left: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--danger-glow) 0%, transparent 70%);
+            pointer-events: none;
+            clip-path: inset(0);
+        }
+        .hero-inner {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+        .hero-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 16px 6px 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 32px;
+            animation: fadeInUp 0.8s ease both;
+        }
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+            animation: pulse-dot 2s ease infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 6px transparent; }
+        }
+        .hero h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(40px, 5.5vw, 82px);
+            line-height: 1.0;
+            font-weight: 400;
+            letter-spacing: -2px;
+            margin-bottom: 28px;
+            animation: fadeInUp 0.8s 0.1s ease both;
+        }
+        .hero h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+        .hero h1 .strike {
+            color: var(--danger);
+            text-decoration: line-through;
+            text-decoration-thickness: 3px;
+            opacity: 0.5;
+        }
+        .hero-desc {
+            font-size: 18px;
+            line-height: 1.7;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+            max-width: 480px;
+            animation: fadeInUp 0.8s 0.2s ease both;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s 0.3s ease both;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px var(--accent-glow); }
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+        }
+        .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+
+        /* ── CLOTH SIM CONTAINER ── */
+        .hero-sim {
+            flex: 0 0 420px;
+            height: 620px;
+            position: relative;
+            overflow: visible;
+        }
+        .hero-sim canvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            display: block;
+            touch-action: none;
+            overflow: visible;
+        }
+        .hero-sim canvas:active { cursor: grabbing; }
+        .sim-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            animation: fadeInUp 1s 1s ease both;
+            pointer-events: none;
+        }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-elevated);
+        }
+        .stats-bar .container {
+            padding: 40px 48px;
+            display: flex;
+            justify-content: space-around;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(28px, 3vw, 36px);
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--accent);
+        }
+        .stat-num.danger { color: var(--danger); }
+        .stat-num.warning { color: var(--warning); }
+        .stat-label {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+        }
+
+        /* ── SECTION COMMON ── */
+        section { padding: 120px 0; position: relative; }
+        section > .container { padding: 0 48px; }
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(32px, 4vw, 56px);
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+        }
+        .section-desc {
+            font-size: 17px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            max-width: 560px;
+        }
+
+        /* ── THREAT FEED ── */
+        .threat-section {
+            background: var(--bg-elevated);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .threat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 48px;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .threat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .threat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .threat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+        .threat-card.crit::before { background: var(--danger); }
+        .threat-card.warn::before { background: var(--warning); }
+        .threat-card.info::before { background: var(--info); }
+        .threat-card:hover { border-color: var(--border-glow); transform: translateY(-4px); }
+        .threat-severity {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .threat-card.crit .threat-severity { background: var(--danger-glow); color: var(--danger); }
+        .threat-card.warn .threat-severity { background: #ffb54520; color: var(--warning); }
+        .threat-card.info .threat-severity { background: #45a2ff20; color: var(--info); }
+        .threat-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+        .threat-card p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+        .threat-card .meta {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── FEATURES ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 60px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s;
+        }
+        .feature-card:hover { border-color: var(--border-glow); }
+        .feature-card.wide {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+        }
+        .feature-card h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+        .feature-card p { font-size: 15px; color: var(--text-dim); line-height: 1.7; }
+        .feature-code {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-dim);
+            overflow-x: auto;
+        }
+        .feature-code .prompt { color: var(--accent); }
+        .feature-code .flag { color: var(--warning); }
+        .feature-code .ok { color: var(--accent); }
+        .feature-code .err { color: var(--danger); }
+
+        /* ── HOW IT WORKS ── */
+        .how-section { text-align: center; }
+        .how-steps {
+            display: flex;
+            gap: 32px;
+            margin-top: 64px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .how-step {
+            flex: 1;
+            min-width: 240px;
+            max-width: 320px;
+            text-align: left;
+            padding: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+        }
+        .how-step .step-num {
+            font-family: 'Instrument Serif', serif;
+            font-size: 64px;
+            color: var(--text-muted);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .how-step h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+        .how-step p { font-size: 14px; color: var(--text-dim); line-height: 1.7; }
+
+        /* ── PRICING ── */
+        .pricing-section {
+            background: var(--bg-elevated);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .pricing-cards {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
+        .price-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            width: 320px;
+            max-width: 100%;
+            text-align: left;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .price-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 60px var(--accent-glow);
+        }
+        .price-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: var(--bg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 4px 14px;
+            border-radius: 6px;
+        }
+        .price-tier {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .price-amount {
+            font-family: 'Instrument Serif', serif;
+            font-size: 48px;
+            letter-spacing: -2px;
+            margin-bottom: 4px;
+        }
+        .price-amount span { font-size: 18px; color: var(--text-dim); }
+        .price-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+        .price-features { list-style: none; margin-bottom: 32px; }
+        .price-features li {
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .price-features li::before {
+            content: '✓';
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .price-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .price-card.featured .price-btn {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+        .price-btn:hover { transform: translateY(-1px); }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border);
+        }
+        footer > .container {
+            padding: 80px 48px 40px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 60px;
+        }
+        .footer-brand p {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-top: 16px;
+            max-width: 300px;
+        }
+        .footer-col h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .footer-col a {
+            display: block;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 0;
+            transition: color 0.2s;
+        }
+        .footer-col a:hover { color: var(--text); }
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .footer-bottom a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-bottom a:hover { color: var(--accent); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── RESPONSIVE ── */
+
+        /* Tablets */
+        @media (max-width: 1100px) {
+            .hero-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero-content { max-width: 640px; }
+            .hero-desc { margin-left: auto; margin-right: auto; }
+            .hero-actions { justify-content: center; }
+            .hero-sim {
+                flex: none;
+                width: 100%;
+                max-width: 380px;
+                height: 540px;
+                margin: 0 auto;
+            }
+            .features-grid { grid-template-columns: 1fr; }
+            .feature-card.wide {
+                grid-column: span 1;
+                grid-template-columns: 1fr;
+            }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Phones */
+        @media (max-width: 640px) {
+            nav .nav-inner { padding: 0 20px; }
+            .nav-links { display: none; }
+            section > .container, .hero > .container,
+            .stats-bar .container, footer > .container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .hero {
+                padding-top: 100px;
+                padding-bottom: 40px;
+            }
+            .hero-badge {
+                font-size: 11px;
+                padding: 5px 12px 5px 7px;
+            }
+            .hero h1 { letter-spacing: -1px; }
+            .hero-desc { font-size: 16px; }
+            .hero-sim {
+                max-width: 300px;
+                height: 440px;
+            }
+            .stats-bar .container {
+                gap: 16px;
+                padding-top: 28px;
+                padding-bottom: 28px;
+            }
+            .stat-item { flex: 1 0 40%; }
+            section {
+                padding-top: 80px;
+                padding-bottom: 80px;
+            }
+            .threat-grid { grid-template-columns: 1fr; }
+            .feature-card { padding: 28px; }
+            .feature-code { font-size: 11px; padding: 16px; }
+            .pricing-cards { gap: 16px; }
+            .price-card { width: 100%; }
+            .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="https://t.me/dark_princes12" target="_blank" rel="noopener" class="nav-logo">
+        <div class="shield-icon">🛡</div>
+        ClawShield
+    </a>
+    <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#threats">Threat Feed</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="https://t.me/dark_princes12" target="_blank" rel="noopener">Docs</a></li>
+    </ul>
+    <button class="nav-cta" onclick="window.open('https://t.me/tech_master_a2z','_blank')">Get Started Free</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow-danger"></div>
+
+    <div class="container">
+        <div class="hero-inner">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                Scanning 13,700+ ClawHub skills in real-time
+            </div>
+            <h1>
+                Don't let <span class="strike">malware</span><br>
+                into your <em>Claw</em>
+            </h1>
+            <p class="hero-desc">
+                Continuous security scanning for every OpenClaw skill you install. Detect prompt injections, data exfiltration, and supply-chain attacks before they reach your agent.
+            </p>
+            <div class="hero-actions">
+                <a href="https://t.me/DarkPrince_Dev" target="_blank" rel="noopener" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Start Scanning
+                </a>
+                <a href="https://t.me/DarkPrince_Dev" target="_blank" rel="noopener" class="btn-ghost">View Demo →</a>
+            </div>
+        </div>
+
+        <!-- 3D Cloth Simulation -->
+        <div class="hero-sim">
+            <canvas id="glcanvas"></canvas>
+            <div class="sim-hint">↑ Grab & drag the report</div>
+        </div>
+        </div>
+    </div>
+</section>
+<div class="stats-bar">
+  <div class="container">
+    <div class="stat-item reveal">
+        <div class="stat-num" data-target="3016">0</div>
+        <div class="stat-label">Skills Analyzed</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num danger" data-target="314">0</div>
+        <div class="stat-label">Malicious Detected</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num warning" data-target="847">0</div>
+        <div class="stat-label">Risky Patterns</div>
+    </div>
+    <div class="stat-item reveal">
+        <div class="stat-num" data-target="99">0</div>
+        <div class="stat-label">% Scan Accuracy</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE THREATS -->
+<section class="threat-section" id="threats">
+  <div class="container">
+    <div class="threat-header reveal">
+        <div>
+            <div class="section-label">Live Threat Feed</div>
+            <h2 class="section-title">What we caught<br>this week</h2>
+        </div>
+        <div class="section-desc">
+            Our engine scans every skill published to ClawHub. Here's a snapshot of recent detections that saved OpenClaw users from compromise.
+        </div>
+    </div>
+    <div class="threat-grid">
+        <div class="threat-card crit reveal">
+            <span class="threat-severity">Critical</span>
+            <h3>Atomic Stealer Variant in "productivity-boost" Skill</h3>
+            <p>Disguised as a workflow optimizer. Downloads and executes an obfuscated macOS infostealer targeting Keychain, browser cookies, and crypto wallets.</p>
+            <div class="meta"><span>SHA-256: 4ae6...c31f</span><span>2h ago</span></div>
+        </div>
+        <div class="threat-card warn reveal">
+            <span class="threat-severity">Warning</span>
+            <h3>Prompt Injection in "auto-emailer" Skill</h3>
+            <p>Hidden instructions in SKILL.md attempt to override agent safety boundaries and exfiltrate conversation history to an external webhook.</p>
+            <div class="meta"><span>ClawHub #8291</span><span>5h ago</span></div>
+        </div>
+        <div class="threat-card info reveal">
+            <span class="threat-severity">Advisory</span>
+            <h3>Hardcoded API Keys in "weather-agent" Skill</h3>
+            <p>Exposed OpenAI and Stripe keys in SKILL.md. Not intentionally malicious but poses a significant credential leakage risk for users.</p>
+            <div class="meta"><span>ClawHub #7043</span><span>8h ago</span></div>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+        <div class="section-label">Capabilities</div>
+        <h2 class="section-title">Security that thinks<br>like an <em style="font-family:'Instrument Serif',serif;font-style:italic">agent</em></h2>
+        <p class="section-desc">Built specifically for the OpenClaw skill ecosystem. Not just static analysis — we understand agent behavior, skill chaining, and prompt-level threats.</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card wide reveal">
+            <div>
+                <div class="feature-icon">⚡</div>
+                <h3>One-Command Integration</h3>
+                <p>Install ClawShield as an OpenClaw skill and it monitors everything else. Works with your existing ClawHub workflow — scans happen before skills load into your agent's runtime.</p>
+            </div>
+            <div class="feature-code">
+                <div><span class="prompt">$</span> clawhub install clawshield</div>
+                <div style="color:var(--text-muted)">✓ ClawShield v2.4.1 installed</div>
+                <div style="color:var(--text-muted)">✓ Daemon started on port 18790</div>
+                <br>
+                <div><span class="prompt">$</span> clawshield scan <span class="flag">--workspace</span></div>
+                <div>Scanning 24 installed skills...</div>
+                <div><span class="ok">✓ 21 skills clean</span></div>
+                <div><span class="flag">⚠ 2 skills flagged (risky patterns)</span></div>
+                <div><span class="err">✗ 1 skill blocked (malware detected)</span></div>
+            </div>
+        </div>
+        <div class="feature-card reveal">
+            <div class="feature-icon">🧠</div>
+            <h3>Prompt Injection Detection</h3>
+            <p>Our AI analyzes SKILL.md files for hidden instructions, social engineering patterns, and attempts to override agent boundaries. Catches what static tools miss.</p>
+        </div>
+        <div class="feature-card reveal">
+            <div class="feature-icon">🔗</div>
+            <h3>Supply Chain Graph</h3>
+            <p>Visualize dependency chains across your skills. See which remote URLs get fetched, which binaries execute, and how skills interact with your system.</p>
+        </div>
+        <div class="feature-card reveal">
+            <div class="feature-icon">📡</div>
+            <h3>Real-time Alerting</h3>
+            <p>Get notified on your preferred channel — WhatsApp, Slack, Discord — the moment a threat is detected. Works through OpenClaw's own messaging layer.</p>
+        </div>
+        <div class="feature-card reveal">
+            <div class="feature-icon">🔄</div>
+            <h3>Continuous Rescanning</h3>
+            <p>Skills can change after install. We re-verify at intervals and whenever upstream repos update, so post-install mutations never slip through.</p>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="container">
+    <div class="reveal">
+        <div class="section-label">How It Works</div>
+        <h2 class="section-title">Three minutes to full coverage</h2>
+    </div>
+    <div class="how-steps">
+        <div class="how-step reveal">
+            <div class="step-num">01</div>
+            <h3>Install the Skill</h3>
+            <p>Add ClawShield to your OpenClaw workspace with a single CLI command. No config files, no API keys, no setup wizard.</p>
+        </div>
+        <div class="how-step reveal">
+            <div class="step-num">02</div>
+            <h3>Scan Your Workspace</h3>
+            <p>ClawShield indexes every installed skill, analyzes SKILL.md files, checks binaries against VirusTotal, and maps external dependencies.</p>
+        </div>
+        <div class="how-step reveal">
+            <div class="step-num">03</div>
+            <h3>Stay Protected</h3>
+            <p>New skills get pre-scanned before install. Existing skills get rescanned daily. Threats trigger instant alerts through your channels.</p>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="reveal">
+        <div class="section-label">Pricing</div>
+        <h2 class="section-title">Start free, scale when you need</h2>
+        <p class="section-desc" style="margin:16px auto 0">All plans include the core scanning engine. Upgrade for team features and advanced threat intelligence.</p>
+    </div>
+    <div class="pricing-cards">
+        <div class="price-card reveal">
+            <div class="price-tier">Personal</div>
+            <div class="price-amount">$0 <span>/ forever</span></div>
+            <p class="price-desc">For solo OpenClaw users who want peace of mind.</p>
+            <ul class="price-features">
+                <li>Up to 50 skill scans / month</li>
+                <li>Basic threat detection</li>
+                <li>ClawHub install-time scanning</li>
+                <li>Community threat feed</li>
+            </ul>
+            <button class="price-btn" onclick="window.open('https://t.me/DarkPrince_Dev','_blank')">Get Started</button>
+        </div>
+        <div class="price-card featured reveal">
+            <div class="price-tier">Pro</div>
+            <div class="price-amount">$19 <span>/ month</span></div>
+            <p class="price-desc">For power users running serious agent workflows.</p>
+            <ul class="price-features">
+                <li>Unlimited skill scans</li>
+                <li>Prompt injection analysis</li>
+                <li>Supply chain dependency graph</li>
+                <li>Real-time alerts (all channels)</li>
+                <li>Continuous rescanning</li>
+            </ul>
+            <button class="price-btn" onclick="window.open('https://t.me/tech_master_a2z','_blank')">Start Free Trial</button>
+        </div>
+        <div class="price-card reveal">
+            <div class="price-tier">Team</div>
+            <div class="price-amount">$49 <span>/ month</span></div>
+            <p class="price-desc">For teams with shared agent infrastructure.</p>
+            <ul class="price-features">
+                <li>Everything in Pro</li>
+                <li>Multi-agent workspace scanning</li>
+                <li>Shared skill allowlists</li>
+                <li>Audit logs &amp; compliance reports</li>
+                <li>Priority support</li>
+            </ul>
+            <button class="price-btn" onclick="window.open('https://t.me/DarkPrince_Dev','_blank')">Contact Sales</button>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener" class="nav-logo" style="margin-bottom:4px">
+                <div class="shield-icon">🛡</div>
+                ClawShield
+            </a>
+            <p>Securing the OpenClaw skill ecosystem. Built by security engineers who run their own Claws.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Features</a>
+            <a href="https://t.me/dark_princes12" target="_blank" rel="noopener">Pricing</a>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Changelog</a>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Roadmap</a>
+        </div>
+        <div class="footer-col">
+            <h4>Resources</h4>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Documentation</a>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Threat Database</a>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Blog</a>
+            <a href="https://t.me/dark_princes12" target="_blank" rel="noopener">Status</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">About</a>
+            <a href="https://t.me/dark_princes12" target="_blank" rel="noopener">Security</a>
+            <a href="https://t.me/tech_master_a2z" target="_blank" rel="noopener">Privacy</a>
+            <a href="https://t.me/dark_princes12" target="_blank" rel="noopener">Terms</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 ClawShield. Not affiliated with OpenClaw.</span>
+        <span>Built with 🦞 by <a href="https://t.me/DarkPrince_Dev" target="_blank" rel="noopener">@NikandrSurkov</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+/* ── Scroll Reveal ── */
+(function () {
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+})();
+
+/* ── Count-Up Animation ── */
+(function () {
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            var el = e.target;
+            var target = +el.dataset.target;
+            var dur = 1800;
+            var start = performance.now();
+            (function tick(now) {
+                var p = Math.min((now - start) / dur, 1);
+                var ease = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.floor(ease * target).toLocaleString();
+                if (el.dataset.target === '99') el.textContent += '%';
+                if (p < 1) requestAnimationFrame(tick);
+            })(start);
+            io.unobserve(el);
+        });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stat-num[data-target]').forEach(function (el) { io.observe(el); });
+})();
+
+/* ═══════════════════════════════════════════
+   3D CLOTH RECEIPT SIMULATION (WebGL)
+   ═══════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    /* ── 1. Generate receipt texture on offscreen 2D canvas ── */
+    var texCanvas = document.createElement('canvas');
+    texCanvas.width = 1024;
+    texCanvas.height = 2048;
+    var ctx = texCanvas.getContext('2d');
+    ctx.scale(2, 2);
+    var W = 512, H = 1024;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, W, H);
+
+    var grd = ctx.createLinearGradient(0, 0, W, 0);
+    grd.addColorStop(0, '#4ae68a');
+    grd.addColorStop(1, '#2bde74');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, 12);
+
+    ctx.fillStyle = '#e2e4ed';
+    ctx.font = 'bold 32px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('\uD83D\uDEE1  CLAWSHIELD', W / 2, 72);
+    ctx.font = '20px monospace';
+    ctx.fillStyle = '#6b7094';
+    ctx.fillText('SECURITY SCAN REPORT', W / 2, 112);
+
+    ctx.textAlign = 'left';
+    ctx.font = '18px monospace';
+    ctx.fillStyle = '#3d4160';
+    ctx.fillText('Date: 2026-03-09  09:42 UTC', 40, 170);
+    ctx.fillText('Workspace: ~/openclaw', 40, 200);
+    ctx.fillText('Agent: personal-v3', 40, 230);
+
+    ctx.strokeStyle = '#1e2130';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(40, 260); ctx.lineTo(W - 40, 260); ctx.stroke();
+
+    ctx.font = 'bold 20px monospace';
+    ctx.fillStyle = '#6b7094';
+    ctx.fillText('INSTALLED SKILLS', 40, 300);
+
+    var skills = [
+        { n: 'gog-workspace',      s: 'PASS', c: '#4ae68a' },
+        { n: 'tavily-search',      s: 'PASS', c: '#4ae68a' },
+        { n: 'wacli-whatsapp',     s: 'PASS', c: '#4ae68a' },
+        { n: 'productivity-boost', s: 'FAIL', c: '#ff4d6a' },
+        { n: 'auto-emailer',       s: 'WARN', c: '#ffb545' },
+        { n: 'obsidian-vault',     s: 'PASS', c: '#4ae68a' },
+        { n: 'n8n-workflow',       s: 'PASS', c: '#4ae68a' },
+        { n: 'summarize-pro',      s: 'PASS', c: '#4ae68a' }
+    ];
+    var sY = 340, sH = 42;
+    ctx.font = '18px monospace';
+    skills.forEach(function (sk, i) {
+        ctx.fillStyle = '#e2e4ed'; ctx.textAlign = 'left';
+        ctx.fillText(sk.n, 40, sY + i * sH);
+        ctx.fillStyle = sk.c;     ctx.textAlign = 'right';
+        ctx.fillText(sk.s, W - 40, sY + i * sH);
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(40, sY + skills.length * sH + 16);
+    ctx.lineTo(W - 40, sY + skills.length * sH + 16);
+    ctx.stroke();
+
+    var sumY = sY + skills.length * sH + 56;
+    ctx.font = '18px monospace';
+    ctx.textAlign = 'left';  ctx.fillStyle = '#6b7094';
+    ctx.fillText('Total Skills:', 40, sumY);
+    ctx.fillText('Clean:',        40, sumY + 34);
+    ctx.fillText('Flagged:',      40, sumY + 68);
+    ctx.fillText('Blocked:',      40, sumY + 102);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#e2e4ed'; ctx.fillText('8', W - 40, sumY);
+    ctx.fillStyle = '#4ae68a'; ctx.fillText('6', W - 40, sumY + 34);
+    ctx.fillStyle = '#ffb545'; ctx.fillText('1', W - 40, sumY + 68);
+    ctx.fillStyle = '#ff4d6a'; ctx.fillText('1', W - 40, sumY + 102);
+
+    ctx.fillStyle = '#1e2130';
+    ctx.fillRect(40, sumY + 132, W - 80, 5);
+
+    ctx.font = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffb545';
+    ctx.fillText('\u26A0  ACTION REQUIRED', W / 2, sumY + 186);
+    ctx.font = '16px monospace';
+    ctx.fillStyle = '#3d4160';
+    ctx.fillText('Run: clawshield quarantine', W / 2, sumY + 224);
+    ctx.fillText('--skill productivity-boost', W / 2, sumY + 248);
+
+    ctx.font = '16px monospace';
+    ctx.fillStyle = '#1e2130';
+    ctx.fillText('clawshield.dev', W / 2, sumY + 310);
+
+    /* ── 2. WebGL bootstrap ── */
+    var canvas = document.getElementById('glcanvas');
+    if (!canvas) return;
+    var gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false });
+    if (!gl) return;
+    var aspect = 1;
+
+    function resize() {
+        var rect = canvas.parentElement.getBoundingClientRect();
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width  = rect.width  * dpr;
+        canvas.height = rect.height * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        aspect = canvas.width / canvas.height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    var vsrc =
+        'attribute vec3 a_pos;attribute vec3 a_norm;attribute vec2 a_uv;' +
+        'uniform mat4 u_proj;uniform mat4 u_view;' +
+        'varying vec3 v_norm;varying vec2 v_uv;' +
+        'void main(){v_norm=a_norm;v_uv=a_uv;gl_Position=u_proj*u_view*vec4(a_pos,1.0);}';
+    var fsrc =
+        'precision mediump float;' +
+        'varying vec3 v_norm;varying vec2 v_uv;uniform sampler2D u_tex;' +
+        'void main(){' +
+        'vec3 n=normalize(v_norm);if(!gl_FrontFacing)n=-n;' +
+        'float d1=max(dot(n,normalize(vec3(0.4,0.8,0.6))),0.0);' +
+        'float d2=max(dot(n,normalize(vec3(-0.5,-0.2,0.8))),0.0);' +
+        'vec4 tc=texture2D(u_tex,v_uv);' +
+        'gl_FragColor=vec4(tc.rgb*(0.5+d1*0.45+d2*0.2),tc.a);}';
+
+    function mkShader(t, s) {
+        var sh = gl.createShader(t);
+        gl.shaderSource(sh, s);
+        gl.compileShader(sh);
+        return sh;
+    }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vsrc));
+    gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, fsrc));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    var aPos  = gl.getAttribLocation(prog, 'a_pos');
+    var aNorm = gl.getAttribLocation(prog, 'a_norm');
+    var aUv   = gl.getAttribLocation(prog, 'a_uv');
+    var uProj = gl.getUniformLocation(prog, 'u_proj');
+    var uView = gl.getUniformLocation(prog, 'u_view');
+
+    var tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texCanvas);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* ── 3. Particle cloth mesh ── */
+    var NX = 25, NY = 50, NP = NX * NY;
+    var CW = 3.0, CH = 6.0;
+    var particles = [];
+    var posData    = new Float32Array(NP * 3);
+    var normalData = new Float32Array(NP * 3);
+    var uvData     = new Float32Array(NP * 2);
+
+    var y, x, idx, px, py;
+    for (y = 0; y < NY; y++) {
+        for (x = 0; x < NX; x++) {
+            px = (x / (NX - 1) - 0.5) * CW;
+            py = -(y / (NY - 1)) * CH;
+            idx = y * NX + x;
+            particles.push({ x: px, y: py, z: 0, ox: px, oy: py, oz: 0 });
+            uvData[idx * 2]     = x / (NX - 1);
+            uvData[idx * 2 + 1] = y / (NY - 1);
+        }
+    }
+
+    var constraints = [];
+    function addC(i1, i2) {
+        var dx = particles[i2].x - particles[i1].x;
+        var dy = particles[i2].y - particles[i1].y;
+        constraints.push({ p1: i1, p2: i2, rest: Math.sqrt(dx * dx + dy * dy) });
+    }
+    for (y = 0; y < NY; y++) {
+        for (x = 0; x < NX; x++) {
+            idx = y * NX + x;
+            if (x < NX - 1) addC(idx, idx + 1);
+            if (y < NY - 1) addC(idx, idx + NX);
+            if (x < NX - 1 && y < NY - 1) { addC(idx, idx + NX + 1); addC(idx + 1, idx + NX); }
+            if (x < NX - 2) addC(idx, idx + 2);
+            if (y < NY - 2) addC(idx, idx + NX * 2);
+        }
+    }
+
+    var indices = [];
+    for (y = 0; y < NY - 1; y++) {
+        for (x = 0; x < NX - 1; x++) {
+            idx = y * NX + x;
+            indices.push(idx, idx + 1, idx + NX, idx + 1, idx + NX + 1, idx + NX);
+        }
+    }
+
+    var posBuf  = gl.createBuffer();
+    var normBuf = gl.createBuffer();
+    var uvBuf   = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, uvData, gl.STATIC_DRAW);
+    var idxBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    gl.enable(gl.DEPTH_TEST);
+
+    var projM = new Float32Array(16);
+    var viewM = new Float32Array(16);
+    function setPersp(o, fv, a, n, f) {
+        var t = 1 / Math.tan(fv / 2), nf = 1 / (n - f);
+        o.fill(0); o[0] = t / a; o[5] = t; o[10] = (f + n) * nf; o[11] = -1; o[14] = 2 * f * n * nf;
+    }
+    function setTrans(o, tx, ty, tz) {
+        o.fill(0); o[0] = 1; o[5] = 1; o[10] = 1; o[15] = 1; o[12] = tx; o[13] = ty; o[14] = tz;
+    }
+
+    var camPos = { x: 0, y: -2.5, z: 9.0 };
+    var fov = 45 * Math.PI / 180;
+
+    /* ── 4. Pointer interaction ── */
+    var ptrX = 0, ptrY = 0, grabbedIdx = -1, grabDepth = 0;
+
+    function getRay() {
+        var t = Math.tan(fov / 2);
+        var dx = ptrX * aspect * t, dy = ptrY * t, dz = -1;
+        var l = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        return { ox: camPos.x, oy: camPos.y, oz: camPos.z, dx: dx / l, dy: dy / l, dz: dz / l };
+    }
+    function ptrFromEvent(e) {
+        var rect = canvas.getBoundingClientRect();
+        ptrX =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+        ptrY = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+    }
+
+    canvas.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        ptrFromEvent(e);
+        var ray = getRay(), minD = Infinity, best = -1;
+        for (var i = 0; i < NP; i++) {
+            var p = particles[i];
+            var vx = p.x - ray.ox, vy = p.y - ray.oy, vz = p.z - ray.oz;
+            var t = vx * ray.dx + vy * ray.dy + vz * ray.dz;
+            var qx = ray.ox + ray.dx * t, qy = ray.oy + ray.dy * t, qz = ray.oz + ray.dz * t;
+            var ddx = p.x - qx, ddy = p.y - qy, ddz = p.z - qz;
+            var d = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz);
+            if (d < minD && d < 1.0) { minD = d; best = i; grabDepth = t; }
+        }
+        if (best !== -1) {
+            grabbedIdx = best;
+            canvas.setPointerCapture(e.pointerId);
+        }
+    });
+    canvas.addEventListener('pointermove', function (e) {
+        if (grabbedIdx === -1) return;
+        ptrFromEvent(e);
+        var ray = getRay(), p = particles[grabbedIdx];
+        p.x = ray.ox + ray.dx * grabDepth;
+        p.y = ray.oy + ray.dy * grabDepth;
+        p.z = ray.oz + ray.dz * grabDepth;
+        p.ox = p.x; p.oy = p.y; p.oz = p.z;
+    });
+    function release() { grabbedIdx = -1; }
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+
+    /* ── 5. Render loop ── */
+    var time = 0;
+    var idxLen = indices.length;
+
+    function render() {
+        time += 0.016;
+
+        var windX = Math.sin(time * 1.5) * 0.001;
+        var windZ = Math.cos(time * 1.1) * 0.001;
+        var i, p, vx, vy, vz, wf;
+
+        for (i = 0; i < NP; i++) {
+            if (i < NX || i === grabbedIdx) continue;
+            p = particles[i];
+            vx = (p.x - p.ox) * 0.985;
+            vy = (p.y - p.oy) * 0.985;
+            vz = (p.z - p.oz) * 0.985;
+            p.ox = p.x; p.oy = p.y; p.oz = p.z;
+            wf = p.y / -CH;
+            p.x += vx + windX * wf;
+            p.y += vy - 0.007;
+            p.z += vz + windZ * wf;
+        }
+
+        var iter, c, p1, p2, dx, dy, dz, dist, w1, w2, wS, diff, ox, oy, oz;
+        for (iter = 0; iter < 15; iter++) {
+            for (i = 0; i < constraints.length; i++) {
+                c = constraints[i]; p1 = particles[c.p1]; p2 = particles[c.p2];
+                dx = p2.x - p1.x; dy = p2.y - p1.y; dz = p2.z - p1.z;
+                dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                w1 = (c.p1 < NX || c.p1 === grabbedIdx) ? 0 : 1;
+                w2 = (c.p2 < NX || c.p2 === grabbedIdx) ? 0 : 1;
+                wS = w1 + w2;
+                if (wS > 0) {
+                    diff = (dist - c.rest) / (dist * wS);
+                    ox = dx * diff; oy = dy * diff; oz = dz * diff;
+                    if (w1) { p1.x += ox; p1.y += oy; p1.z += oz; }
+                    if (w2) { p2.x -= ox; p2.y -= oy; p2.z -= oz; }
+                }
+            }
+        }
+
+        normalData.fill(0);
+        for (i = 0; i < NP; i++) {
+            p = particles[i];
+            posData[i * 3] = p.x; posData[i * 3 + 1] = p.y; posData[i * 3 + 2] = p.z;
+        }
+        var i1, i2, i3, ax, ay, az, bx, by, bz, nx, ny, nz;
+        for (i = 0; i < idxLen; i += 3) {
+            i1 = indices[i]; i2 = indices[i + 1]; i3 = indices[i + 2];
+            ax = posData[i2*3]-posData[i1*3]; ay = posData[i2*3+1]-posData[i1*3+1]; az = posData[i2*3+2]-posData[i1*3+2];
+            bx = posData[i3*3]-posData[i1*3]; by = posData[i3*3+1]-posData[i1*3+1]; bz = posData[i3*3+2]-posData[i1*3+2];
+            nx = ay*bz-az*by; ny = az*bx-ax*bz; nz = ax*by-ay*bx;
+            normalData[i1*3]+=nx; normalData[i1*3+1]+=ny; normalData[i1*3+2]+=nz;
+            normalData[i2*3]+=nx; normalData[i2*3+1]+=ny; normalData[i2*3+2]+=nz;
+            normalData[i3*3]+=nx; normalData[i3*3+1]+=ny; normalData[i3*3+2]+=nz;
+        }
+
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        setPersp(projM, fov, aspect, 0.1, 100);
+        setTrans(viewM, -camPos.x, -camPos.y, -camPos.z);
+        gl.uniformMatrix4fv(uProj, false, projM);
+        gl.uniformMatrix4fv(uView, false, viewM);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, posData, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, normalData, gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(aNorm);
+        gl.vertexAttribPointer(aNorm, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
+        gl.enableVertexAttribArray(aUv);
+        gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+        gl.drawElements(gl.TRIANGLES, idxLen, gl.UNSIGNED_SHORT, 0);
+
+        requestAnimationFrame(render);
+    }
+    render();
+})();
+</script>
+
+</body>
+</html>
